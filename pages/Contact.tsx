@@ -1,14 +1,69 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '../supabaseClient';
 
 const Contact: React.FC = () => {
   const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    fullName: '',
+    email: '',
+    service: '',
+    message: ''
+  });
+  const [loading, setLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    const { error: submitError } = await supabase
+      .from('contact_submissions')
+      .insert([
+        {
+          full_name: formData.fullName,
+          email: formData.email,
+          service: formData.service,
+          message: formData.message
+        }
+      ]);
+
+    if (submitError) {
+      setError('Failed to send message. Please try again.');
+      setLoading(false);
+    } else {
+      setSubmitted(true);
+      setLoading(false);
+    }
+  };
+
+  if (submitted) {
+    return (
+      <div className="bg-background-light dark:bg-background-dark min-h-screen flex items-center justify-center p-6">
+        <div className="max-w-md w-full text-center space-y-6">
+          <div className="size-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
+            <span className="material-symbols-outlined text-primary text-4xl">check_circle</span>
+          </div>
+          <h2 className="text-3xl font-black">Message Sent!</h2>
+          <p className="text-slate-600 dark:text-slate-400">Thank you for reaching out. Our technical team will get back to you shortly.</p>
+          <button
+            onClick={() => navigate('/')}
+            className="w-full h-14 bg-primary text-white font-bold rounded-xl shadow-lg shadow-primary/25 transition-all active:scale-95"
+          >
+            Return Home
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-background-light dark:bg-background-dark min-h-screen">
       <header className="sticky top-0 z-50 flex items-center bg-background-light/90 dark:bg-background-dark/95 backdrop-blur-md p-4 pb-3 justify-between border-b border-slate-200 dark:border-slate-800">
-        <button 
+        <button
           onClick={() => navigate(-1)}
           className="text-primary flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           aria-label="Go back"
@@ -27,22 +82,28 @@ const Contact: React.FC = () => {
           </p>
         </div>
 
-        <section className="mt-2 space-y-5">
+        <form onSubmit={handleSubmit} className="mt-2 space-y-5">
           <div className="flex flex-col gap-4">
             <div className="space-y-1.5">
               <label className="text-slate-700 dark:text-slate-300 text-sm font-semibold ml-1">Full Name</label>
-              <input 
-                className="w-full rounded-xl text-slate-900 dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/40 border border-slate-200 dark:border-slate-700 bg-white dark:bg-card-dark h-14 placeholder:text-slate-400 dark:placeholder:text-slate-500 px-4 text-base transition-shadow" 
-                placeholder="E.g. John Doe" 
+              <input
+                required
+                value={formData.fullName}
+                onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                className="w-full rounded-xl text-slate-900 dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/40 border border-slate-200 dark:border-slate-700 bg-white dark:bg-card-dark h-14 placeholder:text-slate-400 dark:placeholder:text-slate-500 px-4 text-base transition-shadow"
+                placeholder="E.g. John Doe"
                 type="text"
               />
             </div>
-            
+
             <div className="space-y-1.5">
               <label className="text-slate-700 dark:text-slate-300 text-sm font-semibold ml-1">Email Address</label>
-              <input 
-                className="w-full rounded-xl text-slate-900 dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/40 border border-slate-200 dark:border-slate-700 bg-white dark:bg-card-dark h-14 placeholder:text-slate-400 dark:placeholder:text-slate-500 px-4 text-base transition-shadow" 
-                placeholder="john@company.com" 
+              <input
+                required
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                className="w-full rounded-xl text-slate-900 dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/40 border border-slate-200 dark:border-slate-700 bg-white dark:bg-card-dark h-14 placeholder:text-slate-400 dark:placeholder:text-slate-500 px-4 text-base transition-shadow"
+                placeholder="john@company.com"
                 type="email"
               />
             </div>
@@ -50,7 +111,12 @@ const Contact: React.FC = () => {
             <div className="space-y-1.5">
               <label className="text-slate-700 dark:text-slate-300 text-sm font-semibold ml-1">Service Category</label>
               <div className="relative">
-                <select className="w-full rounded-xl text-slate-900 dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/40 border border-slate-200 dark:border-slate-700 bg-white dark:bg-card-dark h-14 px-4 text-base appearance-none transition-shadow">
+                <select
+                  required
+                  value={formData.service}
+                  onChange={(e) => setFormData({ ...formData, service: e.target.value })}
+                  className="w-full rounded-xl text-slate-900 dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/40 border border-slate-200 dark:border-slate-700 bg-white dark:bg-card-dark h-14 px-4 text-base appearance-none transition-shadow"
+                >
                   <option value="">Select a service...</option>
                   <option value="electrical">Electrical Wiring</option>
                   <option value="security">Security & Surveillance</option>
@@ -64,20 +130,29 @@ const Contact: React.FC = () => {
 
             <div className="space-y-1.5">
               <label className="text-slate-700 dark:text-slate-300 text-sm font-semibold ml-1">Message</label>
-              <textarea 
-                className="w-full rounded-xl text-slate-900 dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/40 border border-slate-200 dark:border-slate-700 bg-white dark:bg-card-dark min-h-[140px] placeholder:text-slate-400 dark:placeholder:text-slate-500 px-4 py-4 text-base transition-shadow resize-none" 
+              <textarea
+                required
+                value={formData.message}
+                onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                className="w-full rounded-xl text-slate-900 dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/40 border border-slate-200 dark:border-slate-700 bg-white dark:bg-card-dark min-h-[140px] placeholder:text-slate-400 dark:placeholder:text-slate-500 px-4 py-4 text-base transition-shadow resize-none"
                 placeholder="Tell us about your technical requirements..."
               ></textarea>
             </div>
           </div>
 
+          {error && <p className="text-primary text-sm font-bold ml-1">{error}</p>}
+
           <div className="pt-2">
-            <button className="w-full h-14 bg-primary hover:bg-primary/90 text-white font-bold text-lg rounded-xl shadow-lg shadow-primary/25 transition-all flex items-center justify-center gap-2 active:scale-95">
-              <span>Send Message</span>
-              <span className="material-symbols-outlined">send</span>
+            <button
+              disabled={loading}
+              type="submit"
+              className="w-full h-14 bg-primary hover:bg-primary/90 text-white font-bold text-lg rounded-xl shadow-lg shadow-primary/25 transition-all flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50"
+            >
+              <span>{loading ? 'Sending...' : 'Send Message'}</span>
+              {!loading && <span className="material-symbols-outlined">send</span>}
             </button>
           </div>
-        </section>
+        </form>
 
         <section className="mt-10">
           <div className="bg-white dark:bg-card-dark rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
@@ -85,7 +160,7 @@ const Contact: React.FC = () => {
               <span className="material-symbols-outlined text-primary">contact_page</span>
               Direct Support
             </h4>
-            
+
             <div className="grid grid-cols-1 gap-5">
               <a href="tel:0175162938" className="flex items-center gap-4 group p-2 -m-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                 <div className="size-11 flex items-center justify-center bg-primary/10 rounded-xl group-hover:scale-110 transition-transform">
@@ -138,9 +213,9 @@ const Contact: React.FC = () => {
 
         <section className="mt-6 mb-12">
           <div className="relative w-full aspect-[16/9] rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900 group">
-            <img 
-              alt="Office Location Map" 
-              className="w-full h-full object-cover opacity-70 dark:opacity-40 grayscale group-hover:scale-105 transition-transform duration-700" 
+            <img
+              alt="Office Location Map"
+              className="w-full h-full object-cover opacity-70 dark:opacity-40 grayscale group-hover:scale-105 transition-transform duration-700"
               src="https://lh3.googleusercontent.com/aida-public/AB6AXuDGhmcPe9oWMEL4TyPk2y6j39qlEHBz0gXukn2Y93vTkuja_41Vorc9hnnZzNPpSBJzIqcdKBOqfotCp2LjZ8w57ECgYI0AtkFJHmtRl1M0sb7OuqzfYupxIR123kewtnQ0PAimQixWGXVFtLs4MkgAxNmZA08xNBs58KATYQ_TflIbBI3cdo2foSsjJ5Lc70xaGRWAF0lKtrWMXzwvB5N_HTYyNjgjctAvvkYq0NQowj45noFz4kwUNgXRyQizdJlvD8iNX5eMAeA"
             />
             <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/10 group-hover:bg-slate-900/20 transition-colors">

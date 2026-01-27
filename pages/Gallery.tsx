@@ -1,18 +1,33 @@
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PROJECTS } from '../constants';
-import { ServiceCategory } from '../types';
+import { supabase } from '../supabaseClient';
+import { Project, ServiceCategory } from '../types';
 
 const Gallery: React.FC = () => {
   const navigate = useNavigate();
+  const [projects, setProjects] = useState<Project[]>([]);
   const [filter, setFilter] = useState<string | 'All'>('All');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchProjects() {
+      setLoading(true);
+      const { data } = await supabase
+        .from('projects')
+        .select('*')
+        .order('created_at', { ascending: true });
+      if (data) setProjects(data);
+      setLoading(false);
+    }
+    fetchProjects();
+  }, []);
 
   const categories = ['All', ...Object.values(ServiceCategory)];
 
-  const filteredProjects = filter === 'All' 
-    ? PROJECTS 
-    : PROJECTS.filter(p => p.category === filter);
+  const filteredProjects = filter === 'All'
+    ? projects
+    : projects.filter(p => p.category === filter);
 
   return (
     <div className="bg-background-light dark:bg-background-dark min-h-screen">
@@ -39,14 +54,13 @@ const Gallery: React.FC = () => {
 
         <div className="flex gap-2 px-4 py-4 overflow-x-auto hide-scrollbar">
           {categories.map((cat) => (
-            <button 
+            <button
               key={cat}
               onClick={() => setFilter(cat)}
-              className={`px-5 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-colors ${
-                filter === cat 
-                  ? 'bg-primary text-white' 
+              className={`px-5 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-colors ${filter === cat
+                  ? 'bg-primary text-white'
                   : 'bg-white dark:bg-gray-900 border border-[#dbdfe6] dark:border-gray-700 text-slate-700 dark:text-silver-accent'
-              }`}
+                }`}
             >
               {cat === 'All' ? 'All Projects' : cat}
             </button>
@@ -54,22 +68,26 @@ const Gallery: React.FC = () => {
         </div>
 
         <section className="p-4 grid grid-cols-1 gap-6">
-          {filteredProjects.map((project) => (
-            <div key={project.id} className="bg-white dark:bg-gray-900 rounded-2xl overflow-hidden border border-[#dbdfe6] dark:border-gray-700 shadow-sm">
-              <div 
-                className="relative aspect-[16/10] bg-center bg-cover" 
-                style={{ backgroundImage: `url("${project.image}")` }}
-              >
-                <div className="absolute top-3 left-3 px-3 py-1 bg-primary/90 text-white text-[10px] font-bold uppercase rounded-full">
-                  {project.category}
+          {loading ? (
+            <div className="py-10 text-center text-slate-500">Loading projects...</div>
+          ) : (
+            filteredProjects.map((project) => (
+              <div key={project.id} className="bg-white dark:bg-gray-900 rounded-2xl overflow-hidden border border-[#dbdfe6] dark:border-gray-700 shadow-sm">
+                <div
+                  className="relative aspect-[16/10] bg-center bg-cover"
+                  style={{ backgroundImage: `url("${project.image}")` }}
+                >
+                  <div className="absolute top-3 left-3 px-3 py-1 bg-primary/90 text-white text-[10px] font-bold uppercase rounded-full">
+                    {project.category}
+                  </div>
+                </div>
+                <div className="p-5">
+                  <h3 className="text-lg font-bold mb-1">{project.title}</h3>
+                  <p className="text-sm text-silver-gray dark:text-gray-400">{project.description}</p>
                 </div>
               </div>
-              <div className="p-5">
-                <h3 className="text-lg font-bold mb-1">{project.title}</h3>
-                <p className="text-sm text-silver-gray dark:text-gray-400">{project.description}</p>
-              </div>
-            </div>
-          ))}
+            ))
+          )}
         </section>
 
         <div className="p-6 mt-6 mb-10 flex flex-col items-center gap-4 text-center">

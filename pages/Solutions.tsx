@@ -1,16 +1,32 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { SERVICES } from '../constants';
+import { supabase } from '../supabaseClient';
+import { ServiceItem } from '../types';
 
 const Solutions: React.FC = () => {
   const navigate = useNavigate();
+  const [services, setServices] = useState<ServiceItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchServices() {
+      setLoading(true);
+      const { data } = await supabase
+        .from('services')
+        .select('*')
+        .order('created_at', { ascending: true });
+      if (data) setServices(data);
+      setLoading(false);
+    }
+    fetchServices();
+  }, []);
 
   return (
     <div className="bg-background-light dark:bg-background-dark min-h-screen">
       <header className="sticky top-0 z-50 w-full bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
         <div className="flex items-center p-4 justify-between max-w-md mx-auto">
-          <button 
+          <button
             onClick={() => navigate(-1)}
             className="flex size-10 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white"
           >
@@ -30,38 +46,42 @@ const Solutions: React.FC = () => {
         </section>
 
         <div className="space-y-6 px-4">
-          {SERVICES.map((service) => (
-            <div 
-              key={service.id}
-              className="group flex flex-col items-stretch justify-start rounded-xl overflow-hidden bg-white dark:bg-[#1c1f27] shadow-sm border border-slate-200 dark:border-slate-800"
-            >
-              <div 
-                className="w-full aspect-video bg-cover bg-center" 
-                style={{ backgroundImage: `url("${service.image}")` }}
-              />
-              <div className="flex flex-col gap-4 p-5">
-                <div>
-                  <h3 className="text-xl font-bold tracking-tight mb-2">{service.title}</h3>
-                  <div className="space-y-2">
-                    <div className="flex items-start gap-2">
-                      <span className="material-symbols-outlined text-primary text-sm mt-1">check_circle</span>
-                      <p className="text-slate-600 dark:text-silver-accent text-sm">{service.description}</p>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      <span className="material-symbols-outlined text-primary text-sm mt-1">check_circle</span>
-                      <p className="text-slate-600 dark:text-silver-accent text-sm">Expert installation & 24/7 technical support</p>
+          {loading ? (
+            <div className="py-10 text-center text-slate-500">Loading services...</div>
+          ) : (
+            services.map((service) => (
+              <div
+                key={service.id}
+                className="group flex flex-col items-stretch justify-start rounded-xl overflow-hidden bg-white dark:bg-[#1c1f27] shadow-sm border border-slate-200 dark:border-slate-800"
+              >
+                <div
+                  className="w-full aspect-video bg-cover bg-center"
+                  style={{ backgroundImage: `url("${service.image}")` }}
+                />
+                <div className="flex flex-col gap-4 p-5">
+                  <div>
+                    <h3 className="text-xl font-bold tracking-tight mb-2">{service.title}</h3>
+                    <div className="space-y-2">
+                      <div className="flex items-start gap-2">
+                        <span className="material-symbols-outlined text-primary text-sm mt-1">check_circle</span>
+                        <p className="text-slate-600 dark:text-silver-accent text-sm">{service.description}</p>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <span className="material-symbols-outlined text-primary text-sm mt-1">check_circle</span>
+                        <p className="text-slate-600 dark:text-silver-accent text-sm">Expert installation & 24/7 technical support</p>
+                      </div>
                     </div>
                   </div>
+                  <button
+                    onClick={() => navigate(`/service/${service.id}`)}
+                    className="w-full py-3 bg-primary text-white rounded-lg font-semibold text-sm transition-transform active:scale-95"
+                  >
+                    Learn More
+                  </button>
                 </div>
-                <button 
-                  onClick={() => navigate(`/service/${service.id}`)}
-                  className="w-full py-3 bg-primary text-white rounded-lg font-semibold text-sm transition-transform active:scale-95"
-                >
-                  Learn More
-                </button>
               </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
 
         <section className="p-8 text-center mt-6">
