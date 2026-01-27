@@ -1,0 +1,7 @@
+{
+  "name": "Pakmike Tech - Integrated Solutions",
+  "description": "A comprehensive technical services platform offering electrical, security, biometric, and management solutions for modern businesses.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
