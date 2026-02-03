@@ -69,7 +69,7 @@ export const PROJECTS: Project[] = [
   },
   {
     id: 'p2',
-    title: 'Central Mall Surveillance Setup',
+    title: 'Petrol station surveillance set up',
     description: 'Enhanced security coverage by 40% with smart IP cameras.',
     category: ServiceCategory.SECURITY,
     image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuASt8kITyJhJMcIlSWzSls8dJqN1fiMEO_gmTiH2wO3SLBiBvj3-7cbKjqK6Snnqpf1JRQ2YobhGKM9VPFofnqTyn3sWruva8ZQIiLn2JX2bt1EtAV1-RCCQcugs6_eSaWCLWv8-6y9XZy_CsEIGtJonAu4MC3Ja-jcnNdKqmKBoHUL1VQ1hBQaDH5H1fjFlbZWCXgu-DhW3sVWapEszALhzY5wHlI_NKGKXY4l5IDjafGHxuspiolZX3co2Nrg6WThg5dBKROgw3Y'
